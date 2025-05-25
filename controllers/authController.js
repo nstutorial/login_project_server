@@ -159,4 +159,49 @@ const getAllUsers = asyncHandler(async (req, res) => {
   res.json(users);
 });
 
-module.exports = { registerUser, loginUser, getMe, getAllUsers };
+const deleteUser = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.params.id);
+  if (!user) {
+    res.status(404);
+    throw new Error('User not found');
+  }
+
+  await User.findByIdAndDelete(req.params.id);
+  res.json({ message: 'User deleted successfully' });
+});
+
+
+// @desc    Update a user by ID
+// @route   PUT /api/auth/edit-user/:id
+// @access  Private (Admin only)
+const updateUser = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.params.id);
+
+  if (!user) {
+    res.status(404);
+    throw new Error('User not found');
+  }
+
+  const { name, email, phone, role } = req.body;
+
+  user.name = name || user.name;
+  user.email = email || user.email;
+  user.phone = phone || user.phone;
+  user.role = role || user.role;
+
+  const updatedUser = await user.save();
+
+  res.json({
+    message: 'User updated successfully',
+    user: {
+      _id: updatedUser._id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      phone: updatedUser.phone,
+      role: updatedUser.role,
+    }
+  });
+});
+
+
+module.exports = { registerUser, loginUser, getMe, getAllUsers, deleteUser, updateUser };
